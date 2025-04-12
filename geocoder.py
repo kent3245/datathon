@@ -5,6 +5,8 @@ import urllib.parse
 import time
 from math import sin,cos,acos,radians
 import math
+import folium
+from IPython.display import IFrame, display
 
 
 CSV_PATH = "DatathonUCI_Addresses.csv"
@@ -42,7 +44,6 @@ def verify(address, city, state, zip, license_key):
     else:
         raise Exception(f"Error: {response.status_code} - {response.text}")
     
-
 def nearest_neighbor_tsp(distances):
     n = len(distances)
     visited = [False] * n
@@ -109,8 +110,6 @@ def compute_distance_matrix():
         distance_matrix.append(distances)
     return distance_matrix
 
-
-
 def main():
     print("Starting geocoder...")
     license_key = "nRz70ptc6Ce3yHYPaA8IaQ**nSAcwXpxhQ0PC2lXxuDAZ-**" 
@@ -175,9 +174,136 @@ def plot():
 # plt.ylabel("Latitude")
 # plt.show()
 
+def compute_route(latitude, longitude):
+    distance_matrix = compute_distance_matrix()
+    route,total_distance = nearest_neighbor_tsp(distance_matrix)
+
+    route_latitude = []
+    route_longitude = []
+
+    for i in route:
+        route_latitude.append(latitude[i])
+        route_longitude.append(longitude[i])
+
+    return route_latitude, route_longitude, total_distance
+
+
+def map_route(latitude, longitude,map_name,m):
+    for lat, lon in zip(latitude, longitude):
+        folium.Marker(location=[lat, lon]).add_to(m)
+
+    if isinstance(latitude, str):
+        latitude = [float(latitude)]
+    else:
+        latitude = [float(lat) for lat in latitude]
+
+    if isinstance(longitude, str):
+        longitude = [float(longitude)]
+    else:
+        longitude = [float(lon) for lon in longitude]    
+
+    route_points = list(zip(latitude, longitude))
+    
+    # Draw a PolyLine connecting the route points
+    folium.PolyLine(route_points, color="blue", weight=2.5, opacity=1).add_to(m)
+
+    m.save(map_name)
+    display(IFrame(src=map_name, width=700, height=500))
+
+
+def compute_distances(latitude, longitude):
+    distance = 0
+    for i in range(len(latitude)-1):
+        latitude_1 = radians(float(str(latitude[i]).replace('\u2212', '-')))
+        longitude_1 = radians(float(str(longitude[i]).replace('\u2212', '-')))
+        latitude_2 = radians(float(str(latitude[i+1]).replace('\u2212', '-')))
+        longitude_2 = radians(float(str(longitude[i+1]).replace('\u2212', '-')))
+        distance+=compute_distance(latitude_1, longitude_1, latitude_2, longitude_2)
+    return distance
+
+
+
+def map():
+    # import folium
+    # from IPython.display import IFrame
+
+    # latitude,longitude = get_lat_and_log()
+    # # Create a map centered at the average location
+    # m = folium.Map(location=[latitude[0], longitude[0]], zoom_start=12)
+
+    # # Add markers for each location
+    # for lat, lon in zip(latitude, longitude):
+    #     folium.Marker(location=[lat, lon]).add_to(m)
+
+    # # Save the map to an HTML file
+    # m.save("map.html")
+    # IFrame(src='map.html', width=700, height=500)
+
+    # route_latitude, route_longitude, total_distance = compute_route(latitude, longitude)
+    # for i in range(len(route_latitude)):
+    #     folium.Marker(location=[route_latitude[i], route_longitude[i]], popup=f"Distance: {total_distance}").add_to(m)
+    # m.save("map_with_route.html")
+
+
+
+    # Get the base marker coordinates
+    latitude, longitude = get_lat_and_log()
+
+    # Create a map centered at the first location
+    m = folium.Map(location=[latitude[0], longitude[0]], zoom_start=12)
+
+    # Add markers for each location
+    for lat, lon in zip(latitude, longitude):
+        folium.Marker(location=[lat, lon]).add_to(m)
+
+    # Save and optionally display the initial map
+    m.save("map.html")
+    display(IFrame(src='map.html', width=700, height=500))
+
+    # Compute the route (ensure this returns lists or tuples)
+    route_latitude, route_longitude, total_distance = compute_route(latitude, longitude)
+
+    # Check if route_latitude and route_longitude are not lists (i.e., if they are strings),
+    # then wrap them in a list or split them if they contain multiple comma-separated values.
+    # Here is an example if they are single string values:
+    if isinstance(route_latitude, str):
+        route_latitude = [float(route_latitude)]
+    else:
+        route_latitude = [float(lat) for lat in route_latitude]
+
+    if isinstance(route_longitude, str):
+        route_longitude = [float(route_longitude)]
+    else:
+        route_longitude = [float(lon) for lon in route_longitude]
+
+    # Add markers for each point on the computed route
+    for lat, lon in zip(route_latitude, route_longitude):
+        folium.Marker(location=[lat, lon], popup=f"Distance: {total_distance}").add_to(m)
+
+    # Create a list of (lat, lon) tuples in the computed order for drawing the route
+    route_points = list(zip(route_latitude, route_longitude))
+    
+    # Draw a PolyLine connecting the route points
+    folium.PolyLine(route_points, color="blue", weight=2.5, opacity=1).add_to(m)
+
+    # Save and display the map with the route drawn
+    m.save("map_with_route.html")
+    display(IFrame(src='map_with_route.html', width=700, height=500))
+
+    map_route(latitude, longitude,"map_with_route_nothing.html",m)
+
+def mm():
+    lat,log = get_lat_and_log()
+    print(compute_distances(lat,log))
+
+    
+
+    
 
 if __name__ == "__main__":
+    mm()
+    # map()
     # mains()
-    plot()
+    # plot()
 
 
