@@ -7,6 +7,8 @@ from math import sin,cos,acos,radians
 import math
 import folium
 from IPython.display import IFrame, display
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 
 CSV_PATH = "DatathonUCI_Addresses.csv"
@@ -22,7 +24,6 @@ def compute_distance(latitude, longitude,latitude_2,longtitude_2):
     A = sin(latitude) * sin(latitude_2) + cos(latitude) * cos(latitude_2) * cos(longtitude_2 - longitude)
     return 3959 * math.atan2(math.sqrt(1 - A * A), A)  # in miles
     
-
 def verify(address, city, state, zip, license_key):
     license = license_key
     address_line = f'{address}'
@@ -67,7 +68,6 @@ def nearest_neighbor_tsp(distances):
     route.append(0)
     return route, total_distance
 
-
 def get_lat_and_log():
     latitude = []
     longitude = []
@@ -110,7 +110,7 @@ def compute_distance_matrix():
         distance_matrix.append(distances)
     return distance_matrix
 
-def main():
+def write_to_csv():
     print("Starting geocoder...")
     license_key = "nRz70ptc6Ce3yHYPaA8IaQ**nSAcwXpxhQ0PC2lXxuDAZ-**" 
     with open(CSV_PATH, mode='r', newline='') as csvfile:
@@ -148,8 +148,7 @@ def mains():
 
 def plot():
     latitude, longitude = get_lat_and_log()
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker as ticker
+
 
     fig,ax = plt.subplots(figsize=(10, 6))
     ax.xaxis.set_major_locator(ticker.MaxNLocator(5))
@@ -161,18 +160,6 @@ def plot():
     plt.show()
 
     # fig, ax = plt.subplots(figsize=(10, 6))
-
-# ax.scatter(x, y)
-
-# # Limit the number of ticks on the x-axis to, say, 5
-# ax.xaxis.set_major_locator(ticker.MaxNLocator(5))
-# # Similarly for y-axis if needed
-# ax.yaxis.set_major_locator(ticker.MaxNLocator(5))
-
-# plt.title("Geographical Points")
-# plt.xlabel("Longitude")
-# plt.ylabel("Latitude")
-# plt.show()
 
 def compute_route(latitude, longitude):
     distance_matrix = compute_distance_matrix()
@@ -186,7 +173,6 @@ def compute_route(latitude, longitude):
         route_longitude.append(longitude[i])
 
     return route_latitude, route_longitude, total_distance
-
 
 def map_route(latitude, longitude,map_name,m):
     for lat, lon in zip(latitude, longitude):
@@ -210,7 +196,6 @@ def map_route(latitude, longitude,map_name,m):
     m.save(map_name)
     display(IFrame(src=map_name, width=700, height=500))
 
-
 def compute_distances(latitude, longitude):
     distance = 0
     for i in range(len(latitude)-1):
@@ -221,31 +206,7 @@ def compute_distances(latitude, longitude):
         distance+=compute_distance(latitude_1, longitude_1, latitude_2, longitude_2)
     return distance
 
-
-
 def map():
-    # import folium
-    # from IPython.display import IFrame
-
-    # latitude,longitude = get_lat_and_log()
-    # # Create a map centered at the average location
-    # m = folium.Map(location=[latitude[0], longitude[0]], zoom_start=12)
-
-    # # Add markers for each location
-    # for lat, lon in zip(latitude, longitude):
-    #     folium.Marker(location=[lat, lon]).add_to(m)
-
-    # # Save the map to an HTML file
-    # m.save("map.html")
-    # IFrame(src='map.html', width=700, height=500)
-
-    # route_latitude, route_longitude, total_distance = compute_route(latitude, longitude)
-    # for i in range(len(route_latitude)):
-    #     folium.Marker(location=[route_latitude[i], route_longitude[i]], popup=f"Distance: {total_distance}").add_to(m)
-    # m.save("map_with_route.html")
-
-
-
     # Get the base marker coordinates
     latitude, longitude = get_lat_and_log()
 
