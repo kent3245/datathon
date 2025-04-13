@@ -257,7 +257,6 @@ def mm():
     lat,log = get_lat_and_log()
     print(compute_distances(lat,log))
 
-
 def create_order_csv():
     file_name = "order.csv"
     
@@ -267,11 +266,6 @@ def create_order_csv():
         writer.writerow(["latitude","longitude"])
         for i in range(len(lat)):
             writer.writerow([lat[i],log[i]])
-        
-
-    
-
-    
 
 if __name__ == "__main__":
     create_order_csv()
